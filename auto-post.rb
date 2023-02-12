@@ -1,7 +1,8 @@
 # encoding: utf-8
 
 require "rubygems"
-require "media_wiki"
+# require "media_wiki"
+require "mediawiki_api"
 require "csv"
 require "uri"
 require_relative "lib/hiki2mw-auto/common"
@@ -17,10 +18,12 @@ pages = CSV.read(Hiki2MW::Auto::PAGES_TO_POST, :headers => :first_row)
 # MediaWiki へのログイン
 begin
   api_uri = URI.join(config.mediawiki_uri, "api.php").to_s
-  mw = MediaWiki::Gateway.new(api_uri, :bot => true)
-  mw.login(config.username, config.password)
-rescue MediaWiki::Exception
-  Hiki2MW::Auto.die "Login failed"
+  # mw = MediaWiki::Gateway.new(api_uri, :bot => true)
+  client = MediawikiApi::Client.new api_uri
+  # mw.login(config.username, config.password)
+  client.log_in config.username, config.password
+# rescue MediaWiki::Exception
+#  Hiki2MW::Auto.die "Login failed"
 rescue => e
   Hiki2MW::Auto.die e
 end
@@ -31,13 +34,14 @@ pages.each do |row|
   title = row[1]
   begin
     source_mw = File.read(filename)
-    mw.edit(title, source_mw, :summary => "Hiki からの自動変換")
+    # mw.edit(title, source_mw, :summary => "Hiki からの自動変換")
+    client.create_page title, source_mw
 
     puts "Posted #{title}"
     sleep config.wait_time
-  rescue MediaWiki::Exception
-    puts "Post failed: #{title}"
-    sleep config.wait_time
+  # rescue MediaWiki::Exception
+  #  puts "Post failed: #{title}"
+  #  sleep config.wait_time
   rescue => e
     STDERR.puts "#{$0}: #{e}"
   end

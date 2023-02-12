@@ -1,5 +1,6 @@
 # encoding: utf-8
 
+require "uri"
 require "csv"
 require "fileutils"
 require_relative "hiki2mw-auto/common"
@@ -27,7 +28,8 @@ info = eval(File.read(Hiki2MW::Auto::INFO_DB))
 pages_valid_title = {}
 pages_invalid_title = {}
 info.each do |k, v|
-  title = v[:title]
+  #title = v[:title]
+  title = URI.decode_www_form_component(k, enc=Encoding::EUCJP);
   title.force_encoding(HIKI_ENCODING).encode!(OUTPUT_ENCODING)
 
   # () で終わるタイトルの場合、( の前に空白を挿入する
